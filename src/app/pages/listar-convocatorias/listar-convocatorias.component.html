@@ -1,0 +1,230 @@
+<p-menubar>
+    <ng-template pTemplate="start">
+        <div class="flex flex-center">
+            <img class="image-logo" src="../../../assets/logo.ico">
+            <h2><strong>Convocatorias SENAMHI</strong></h2>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="end">
+        <div class="flex">
+            <span class="p-input-icon-left ml-auto">
+                <i class="pi pi-search"></i>
+                <input pInputText #textInput type="text" (input)=" dt.filterGlobal(textInput.value, 'contains' )"
+                    placeholder="Filtrar por descripción o sede" />
+            </span>
+            <span class="space"></span>
+            <button pButton label="Limpiar" class="p-button-outlined" icon="pi pi-filter-slash"
+                (click)="clear(dt, textInput)"></button>
+        </div>
+    </ng-template>
+</p-menubar>
+<p-toast></p-toast>
+<div class="container">
+    <p-table #dt [value]="contrataciones" dataKey="id" [rows]="10" [showCurrentPageReport]="true" [loading]="loading"
+        [paginator]="true"
+        currentPageReportTemplate="Mostrando del {first} al {last} de un total de {totalRecords} registros."
+        [globalFilterFields]="['descripcion','sede']">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th>
+                    <div class="flex">
+                        N°
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Descripción
+                        <p-columnFilter matchMode="contains" type="text" field="descripcion" display="menu"
+                            [showMatchModes]="false" [showOperator]="false" [showAddButton]="false"></p-columnFilter>
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Tipo de servicio
+                        <p-columnFilter field="tipoServicio" matchMode="equals" display="menu" [showMatchModes]="false"
+                            [showOperator]="false" [showAddButton]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-dropdown [ngModel]="value" [options]="tipoServicios"
+                                    (onChange)="filter($event.value)" placeholder="Ninguno">
+                                </p-dropdown>
+                            </ng-template>
+                        </p-columnFilter>
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Sede
+                        <p-columnFilter matchMode="contains" type="text" field="sede" display="menu"
+                            [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" buttonText="Aplicar"
+                            clearButtonText="Limpiar">
+                            ></p-columnFilter>
+                    </div>
+                </th>
+                <th pSortableColumn="fechaPublicacion">
+                    <div class="flex">
+                        Fecha de publicación
+                        <p-sortIcon field="fechaPublicacion" />
+                    </div>
+                </th>
+                <th pSortableColumn="fechaVencimiento">
+                    <div class="flex">
+                        Fecha de vencimiento
+                        <p-sortIcon field="fechaVencimiento" />
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Estado
+                        <p-columnFilter field="estado" matchMode="equals" display="menu" [showMatchModes]="false"
+                            [showOperator]="false" [showAddButton]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-dropdown [ngModel]="value" [options]="estados" (onChange)="filter($event.value)"
+                                    placeholder="Ninguno">
+                                </p-dropdown>
+                            </ng-template>
+                        </p-columnFilter>
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Contratación
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Anexo
+                    </div>
+                </th>
+                <th>
+                    <div class="flex">
+                        Postular / Resultado
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-contratacion let-rowIndex="rowIndex">
+            <tr>
+                <td class="align-items">{{rowIndex + 1}}</td>
+                <td>
+                    {{ contratacion.descripcion }}
+                </td>
+                <td class="align-items">
+                    {{ contratacion.tipoServicio }}
+                </td>
+                <td class="align-items">
+                    {{ contratacion.sede }}
+                </td>
+                <td class="align-items">
+                    {{ contratacion.fechaPublicacion | date: 'dd/MM/yyyy' }}
+                </td>
+                <td class="align-items">
+                    {{ contratacion.fechaVencimiento | date: 'dd/MM/yyyy' }}
+                </td>
+                <td class="align-items">
+                    <p-tag [value]="contratacion.estado" [severity]="getSeverity(contratacion.estado)"></p-tag>
+                </td>
+                <td class="align-items">
+                    <button (click)="verPdf(contratacion.urlFormato)" pButton pRipple icon="pi pi-file-pdf"
+                        class="p-button-rounded p-button-info"></button>
+                </td>
+                <td class="align-items">
+                    <button (click)="verPdf(contratacion.urlConvocatoria)" pButton pRipple icon="pi pi-cloud-download"
+                        class="p-button-rounded p-button-info"></button>
+                </td>
+                <td class="align-items">
+                    @if (noVencido(contratacion)) {
+                    <button (click)="verFormulario(contratacion.codigo)" pButton pRipple icon="pi pi-file-edit"
+                        class="p-button-rounded p-button-warning"></button>
+                    }@else {
+                    <button (click)="verPdf(contratacion.urlResultado)" pButton pRipple icon="pi pi-eye"
+                        class="p-button-rounded p-button-info"></button>
+                    }
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7">No hay contrataciones.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Previsualización" [modal]="true" [(visible)]="isPDF" [style]="{width: '95vw'}" [maximizable]="true">
+    @if (this.isPDF) {
+    <ngx-extended-pdf-viewer [textLayer]="true" [height]="'100vh'" [src]="pdfUrl">
+    </ngx-extended-pdf-viewer>
+    }
+</p-dialog>
+
+<p-dialog header="Ficha de postulación" [modal]="true" [(visible)]="visible"
+    [style]="{width: '45w', minWidth: '400px'}">
+    <form (submit)="onSubmit()" [formGroup]="form">
+        <div class="flex flex-column">
+            <label for="dniRuc">DNI/RUC Contacto</label>
+            <input pInputText id="dniRuc" formControlName="dniRuc" required maxlength="11" minlength="8" />
+            @if (form.get('dniRuc')?.hasError('required') && form.get('dniRuc')?.touched) {
+            <small class="error-message">Ingrese su DNI o RUC.</small>
+            }
+            @if ((form.get('dniRuc')?.hasError('maxlength') ||
+            form.get('dniRuc')?.hasError('minlength')) &&
+            form.get('dniRuc')?.touched) {
+            <small class="error-message">El DNI o RUC debe tener 8 o 11 numeros.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Nombre</label>
+            <input formControlName="nombre" pInputText />
+            @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+            <small class="error-message">Ingrese el nombre.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Apellido Paterno</label>
+            <input formControlName="apellidoPaterno" pInputText />
+            @if (form.get('apellidoPaterno')?.hasError('required') && form.get('apellidoPaterno')?.touched) {
+            <small class="error-message">Ingrese el apellido paterno.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Apellido Materno</label>
+            <input formControlName="apellidoMaterno" pInputText />
+            @if (form.get('apellidoMaterno')?.hasError('required') && form.get('apellidoMaterno')?.touched) {
+            <small class="error-message">Ingrese el apellido materno.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Dirección</label>
+            <input formControlName="direccion" pInputText />
+            @if (form.get('direccion')?.hasError('required') && form.get('direccion')?.touched)
+            {
+            <small class="error-message">Ingrese la dirección.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Correo</label>
+            <input formControlName="correo" pInputText type="email" />
+            @if ((form.get('correo')?.hasError('required') || form.get('correo')?.hasError('email')) &&
+            form.get('correo')?.touched) {
+            <small class="error-message">Ingrese un correo valido.</small>
+            }
+        </div>
+        <div class="flex flex-column">
+            <label>Telefono</label>
+            <input formControlName="telefono" pInputText type="tel" />
+            @if (form.get('telefono')?.hasError('required') && form.get('telefono')?.touched) {
+            <small class="error-message">Ingrese un teléfono valido.</small>
+            }
+        </div>
+        <div class="flex flex-column center">
+            <p-fileUpload [auto]="true" chooseLabel="Cargar Anexo" mode="basic" name="demo[]" customUpload="true"
+                (uploadHandler)="onSelect($event)" accept=".pdf" maxFileSize="10000000"
+                [style]="{'width':'100%'}"></p-fileUpload>
+        </div>
+        <div class="flex flex-column">
+            <div> <strong>Archivo cargado:</strong> {{mensaje}}</div>
+        </div>
+        <p-button type="submit" [disabled]="form.invalid" label="Postular"></p-button>
+    </form>
+</p-dialog>

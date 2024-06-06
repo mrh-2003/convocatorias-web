@@ -22,6 +22,12 @@
     "@angular/router": "^18.0.0",
     "@angular/ssr": "^18.0.1",
     "express": "^4.18.2",
+    "glob": "^10.4.1",
+    "ngx-extended-pdf-viewer": "^20.5.0-alpha.1",
+    "pdfjs-dist": "^4.3.136",
+    "primeicons": "^7.0.0",
+    "primeng": "^17.18.0",
+    "rimraf": "^5.0.7",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
