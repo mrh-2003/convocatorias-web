@@ -15,4 +15,7 @@ export class ConvocadoService {
   addConvocadoDocument(documento: FormData) {
     return this.http.post(this.path + '/upload', documento);
   }
+  existDNI(dni: string, codigoConvocatoria: number) {
+    return this.http.get<boolean>(this.path + `/exists?dniRuc=${dni}&codigoContratacion=${codigoConvocatoria}`);
+  }
 }

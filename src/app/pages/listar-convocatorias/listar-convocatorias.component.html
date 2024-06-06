@@ -159,7 +159,7 @@
 </p-dialog>
 
 <p-dialog header="Ficha de postulación" [modal]="true" [(visible)]="visible"
-    [style]="{width: '45w', minWidth: '400px'}">
+    [style]="{width: '45w', minWidth: '400px', maxWidth: '450px'}">
     <form (submit)="onSubmit()" [formGroup]="form">
         <div class="flex flex-column">
             <label for="dniRuc">DNI/RUC Contacto</label>
@@ -218,13 +218,10 @@
             }
         </div>
         <div class="flex flex-column center">
-            <p-fileUpload [auto]="true" chooseLabel="Cargar Anexo" mode="basic" name="demo[]" customUpload="true"
+            <p-fileUpload #fileUpload [auto]="true" chooseLabel="Cargar Anexo"  name="demo[]" customUpload="true"
                 (uploadHandler)="onSelect($event)" accept=".pdf" maxFileSize="10000000"
                 [style]="{'width':'100%'}"></p-fileUpload>
         </div>
-        <div class="flex flex-column">
-            <div> <strong>Archivo cargado:</strong> {{mensaje}}</div>
-        </div>
-        <p-button type="submit" [disabled]="form.invalid" label="Postular"></p-button>
+        <p-button type="submit" [disabled]="form.invalid || !file" label="Postular"></p-button>
     </form>
 </p-dialog>

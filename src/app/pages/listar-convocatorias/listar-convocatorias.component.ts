@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { Table, TableModule } from 'primeng/table';
 import { ContratacionService } from '../../services/contratacion.service';
 import { ButtonModule } from 'primeng/button';
@@ -15,7 +15,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConvocadoService } from '../../services/convocado.service';
 import { Contratacion } from '../../models/contratacion';
-import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 
 @Component({
   selector: 'app-listar-convocatorias',
@@ -25,7 +25,7 @@ import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
     NgxExtendedPdfViewerModule, ToastModule, ReactiveFormsModule],
   templateUrl: './listar-convocatorias.component.html',
   styleUrl: './listar-convocatorias.component.css',
-  providers: [MessageService] 
+  providers: [MessageService]
 })
 export class ListarConvocatoriasComponent {
   visible = false;
@@ -37,9 +37,9 @@ export class ListarConvocatoriasComponent {
   estados !: any[];
   loading: boolean = true;
   file !: File;
-  mensaje = '';
   codigoContratacion = 0;
-   constructor(private contratacionService: ContratacionService,
+  @ViewChild('fileUpload') fileUpload!: FileUpload;
+  constructor(private contratacionService: ContratacionService,
     private messageService: MessageService,
     private formBuilder: FormBuilder,
     private convocadoService: ConvocadoService
@@ -54,7 +54,7 @@ export class ListarConvocatoriasComponent {
       correo: ['', [Validators.required, Validators.email]],
       telefono: ['', [Validators.required]],
       urlPDF: [''],
-      estado: [true],
+      estado: [''],
       codigoContratacion: [0]
     });
     this.loading = true;
@@ -80,7 +80,7 @@ export class ListarConvocatoriasComponent {
     this.messageService.add({ severity: 'info', summary: 'Éxito', detail: 'Tabla limpiada' });
   }
 
-  verFormulario(codigo: number){
+  verFormulario(codigo: number) {
     this.visible = true;
     this.codigoContratacion = codigo;
   }
@@ -98,24 +98,32 @@ export class ListarConvocatoriasComponent {
   }
   onSelect(event: FileUploadHandlerEvent) {
     this.file = event.files[0];
-    this.mensaje = ` ${this.file.name} - ${this.file.size / 1024} KB`;
   }
-  onSubmit(){
-    if(this.form.valid && this.file){
-      let uniqueFileName = `${new Date().getTime()}_${this.file.name}`;
-      let formData = new FormData();
-      formData.append('file', this.file, uniqueFileName);
-      this.convocadoService.addConvocadoDocument(formData).subscribe((response: any) => {
-        this.form.value.urlPDF = response['url'];
-        this.form.value.codigoContratacion = this.codigoContratacion;
-        this.convocadoService.createConvocado(this.form.value).subscribe(() => {
-          this.visible = false;
-          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Datos guardados correctamente' });
-        });
+  onSubmit() {
+    if (this.form.valid && this.file) {
+      this.convocadoService.existDNI(this.form.value.dniRuc, this.codigoContratacion).subscribe((exists) => {
+        if (exists) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ya existe un convocado con ese DNI en esta convocatoria' });
+          return;
+        } else {
+          let uniqueFileName = `${new Date().getTime()}_${this.file.name}`;
+          let formData = new FormData();
+          formData.append('file', this.file, uniqueFileName);
+          this.convocadoService.addConvocadoDocument(formData).subscribe((response: any) => {
+            this.form.value.urlPDF = response['url'];
+            this.form.value.codigoContratacion = this.codigoContratacion;
+            this.convocadoService.createConvocado(this.form.value).subscribe(() => {
+              this.visible = false;
+              this.form.reset();
+              this.fileUpload.clear();
+              this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Datos guardados correctamente' });
+            });
+          });
+        }
       });
     }
-    else{
+    else {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ingrese todos los campos' });
     }
-  } 
+  }
 }

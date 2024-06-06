@@ -8,6 +8,6 @@ export class Convocado{
     correo: string = '';
     telefono: string = '';
     urlPDF: string = '';
-    estado: boolean = true;
+    estado: string = '';
     codigoContratacion: number = 0;
 }
