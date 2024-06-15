@@ -14,4 +14,5 @@ export class Contratacion {
     urlResultado: string = "";
     fechaCreacion: string = "";
     estado: string = "";
+    numeroExpediente: string = "";
 }

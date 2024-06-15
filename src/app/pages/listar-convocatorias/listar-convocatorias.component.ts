@@ -103,7 +103,7 @@ export class ListarConvocatoriasComponent {
     if (this.form.valid && this.file) {
       this.convocadoService.existDNI(this.form.value.dniRuc, this.codigoContratacion).subscribe((exists) => {
         if (exists) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ya existe un convocado con ese DNI en esta convocatoria' });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ya existe un postulante con ese DNI en esta convocatoria' });
           return;
         } else {
           let uniqueFileName = `${new Date().getTime()}_${this.file.name}`;
