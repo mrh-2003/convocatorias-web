@@ -16,13 +16,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConvocadoService } from '../../services/convocado.service';
 import { Contratacion } from '../../models/contratacion';
 import { FileUpload, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
-
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 @Component({
   selector: 'app-listar-convocatorias',
   standalone: true,
   imports: [DialogModule, MenubarModule, InputTextModule, CommonModule, FormsModule, TableModule, ButtonModule,
     TagModule, DropdownModule, RouterModule, FileUploadModule,
-    NgxExtendedPdfViewerModule, ToastModule, ReactiveFormsModule],
+    NgxExtendedPdfViewerModule, ToastModule, ReactiveFormsModule, ProgressSpinnerModule],
   templateUrl: './listar-convocatorias.component.html',
   styleUrl: './listar-convocatorias.component.css',
   providers: [MessageService]
@@ -38,6 +38,7 @@ export class ListarConvocatoriasComponent {
   loading: boolean = true;
   file !: File;
   codigoContratacion = 0;
+  progress = false;
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   constructor(private contratacionService: ContratacionService,
     private messageService: MessageService,
@@ -106,6 +107,8 @@ export class ListarConvocatoriasComponent {
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ya existe un postulante con ese DNI en esta convocatoria' });
           return;
         } else {
+          this.visible = false;
+          this.progress = true;
           let uniqueFileName = `${new Date().getTime()}_${this.file.name}`;
           let formData = new FormData();
           formData.append('file', this.file, uniqueFileName);
@@ -113,9 +116,9 @@ export class ListarConvocatoriasComponent {
             this.form.value.urlPDF = response['url'];
             this.form.value.codigoContratacion = this.codigoContratacion;
             this.convocadoService.createConvocado(this.form.value).subscribe(() => {
-              this.visible = false;
               this.form.reset();
               this.fileUpload.clear();
+              this.progress = false;
               this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Datos guardados correctamente' });
             });
           });

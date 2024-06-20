@@ -235,3 +235,10 @@
         <p-button type="submit" [disabled]="form.invalid || !file" label="Postular"></p-button>
     </form>
 </p-dialog>
+
+
+@if (progress) {
+    <div class="flex flex-center">
+        <p-progressSpinner ariaLabel="loading" />
+    </div>
+}
