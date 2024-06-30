@@ -23,7 +23,7 @@
     <p-table #dt [value]="contrataciones" dataKey="id" [rows]="10" [showCurrentPageReport]="true" [loading]="loading"
         [paginator]="true"
         currentPageReportTemplate="Mostrando del {first} al {last} de un total de {totalRecords} registros."
-        [globalFilterFields]="['descripcion','sede']">
+        [globalFilterFields]="['sede','descripcion']">
 
         <ng-template pTemplate="header">
             <tr>
@@ -40,8 +40,6 @@
                 <th>
                     <div class="flex">
                         Descripción
-                        <p-columnFilter matchMode="contains" type="text" field="descripcion" display="menu"
-                            [showMatchModes]="false" [showOperator]="false" [showAddButton]="false"></p-columnFilter>
                     </div>
                 </th>
                 <th>
@@ -60,10 +58,14 @@
                 <th>
                     <div class="flex">
                         Sede
-                        <p-columnFilter matchMode="contains" type="text" field="sede" display="menu"
-                            [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" buttonText="Aplicar"
-                            clearButtonText="Limpiar">
-                            ></p-columnFilter>
+                        <p-columnFilter field="sede" matchMode="equals" display="menu" [showMatchModes]="false"
+                            [showOperator]="false" [showAddButton]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-dropdown [ngModel]="value" [options]="tipoSede" (onChange)="filter($event.value)"
+                                    placeholder="Ninguno">
+                                </p-dropdown>
+                            </ng-template>
+                        </p-columnFilter>
                     </div>
                 </th>
                 <th pSortableColumn="fechaPublicacion">
@@ -173,7 +175,8 @@
     <form (submit)="onSubmit()" [formGroup]="form">
         <div class="flex flex-column">
             <label for="dniRuc">DNI/RUC Contacto</label>
-            <input pInputText id="dniRuc" formControlName="dniRuc" required maxlength="11" minlength="8" />
+            <input pInputText id="dniRuc" formControlName="dniRuc" required maxlength="11" minlength="8"
+                pattern="^[0-9]*$" (keypress)="validateNumberInput($event)" />
             @if (form.get('dniRuc')?.hasError('required') && form.get('dniRuc')?.touched) {
             <small class="error-message">Ingrese su DNI o RUC.</small>
             }
@@ -185,28 +188,28 @@
         </div>
         <div class="flex flex-column">
             <label>Nombre</label>
-            <input formControlName="nombre" pInputText />
+            <input appUppercase formControlName="nombre" pInputText />
             @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
             <small class="error-message">Ingrese el nombre.</small>
             }
         </div>
         <div class="flex flex-column">
             <label>Apellido Paterno</label>
-            <input formControlName="apellidoPaterno" pInputText />
+            <input appUppercase formControlName="apellidoPaterno" pInputText />
             @if (form.get('apellidoPaterno')?.hasError('required') && form.get('apellidoPaterno')?.touched) {
             <small class="error-message">Ingrese el apellido paterno.</small>
             }
         </div>
         <div class="flex flex-column">
             <label>Apellido Materno</label>
-            <input formControlName="apellidoMaterno" pInputText />
+            <input appUppercase formControlName="apellidoMaterno" pInputText />
             @if (form.get('apellidoMaterno')?.hasError('required') && form.get('apellidoMaterno')?.touched) {
             <small class="error-message">Ingrese el apellido materno.</small>
             }
         </div>
         <div class="flex flex-column">
             <label>Dirección</label>
-            <input formControlName="direccion" pInputText />
+            <input appUppercase formControlName="direccion" pInputText />
             @if (form.get('direccion')?.hasError('required') && form.get('direccion')?.touched)
             {
             <small class="error-message">Ingrese la dirección.</small>
@@ -214,7 +217,7 @@
         </div>
         <div class="flex flex-column">
             <label>Correo</label>
-            <input formControlName="correo" pInputText type="email" />
+            <input appUppercase formControlName="correo" pInputText type="email" />
             @if ((form.get('correo')?.hasError('required') || form.get('correo')?.hasError('email')) &&
             form.get('correo')?.touched) {
             <small class="error-message">Ingrese un correo valido.</small>
@@ -222,7 +225,7 @@
         </div>
         <div class="flex flex-column">
             <label>Telefono</label>
-            <input formControlName="telefono" pInputText type="tel" />
+            <input formControlName="telefono" pInputText type="number" />
             @if (form.get('telefono')?.hasError('required') && form.get('telefono')?.touched) {
             <small class="error-message">Ingrese un teléfono valido.</small>
             }
@@ -238,7 +241,7 @@
 
 
 @if (progress) {
-    <div class="flex flex-center">
-        <p-progressSpinner ariaLabel="loading" />
-    </div>
+<div class="flex flex-center">
+    <p-progressSpinner ariaLabel="loading" />
+</div>
 }

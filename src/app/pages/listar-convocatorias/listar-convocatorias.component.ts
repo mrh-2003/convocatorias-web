@@ -11,17 +11,18 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
-import { MessageService } from 'primeng/api';
+import { MessageService, PrimeNGConfig } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConvocadoService } from '../../services/convocado.service';
 import { Contratacion } from '../../models/contratacion';
 import { FileUpload, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { UppercaseDirective } from '../../directives/uppercase.directive';
 @Component({
   selector: 'app-listar-convocatorias',
   standalone: true,
   imports: [DialogModule, MenubarModule, InputTextModule, CommonModule, FormsModule, TableModule, ButtonModule,
-    TagModule, DropdownModule, RouterModule, FileUploadModule,
+    TagModule, DropdownModule, RouterModule, FileUploadModule, UppercaseDirective,
     NgxExtendedPdfViewerModule, ToastModule, ReactiveFormsModule, ProgressSpinnerModule],
   templateUrl: './listar-convocatorias.component.html',
   styleUrl: './listar-convocatorias.component.css',
@@ -32,18 +33,20 @@ export class ListarConvocatoriasComponent {
   form!: FormGroup;
   tipoServicios!: any[];
   contrataciones!: any[];
+  tipoSede!: any[];
   pdfUrl = '';
   isPDF = false;
   estados !: any[];
   loading: boolean = true;
-  file !: File;
+  file !: File | null;
   codigoContratacion = 0;
   progress = false;
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   constructor(private contratacionService: ContratacionService,
     private messageService: MessageService,
     private formBuilder: FormBuilder,
-    private convocadoService: ConvocadoService
+    private convocadoService: ConvocadoService,
+    private primengConfig: PrimeNGConfig
   ) { }
   ngOnInit() {
     this.form = this.formBuilder.group({
@@ -69,8 +72,16 @@ export class ListarConvocatoriasComponent {
     ];
     this.estados = [
       { label: 'Activo', value: 'Activo' },
-      { label: 'Inactivo', value: 'Inactivo' }
+      { label: 'Finalizado', value: 'Finalizado' }
     ];
+    this.tipoSede = [
+      { label: 'Central', value: 'Central' },
+      { label: 'Dirección Zonal', value: 'Dirección Zonal' }
+    ];
+    this.primengConfig.setTranslation({
+      clear: 'Limpiar',
+      apply: 'Aplicar',
+    });
   }
   noVencido(contratacion: Contratacion) {
     return contratacion.fechaVencimiento >= new Date().toISOString().split('T')[0];
@@ -80,9 +91,17 @@ export class ListarConvocatoriasComponent {
     textInput.value = '';
     this.messageService.add({ severity: 'info', summary: 'Éxito', detail: 'Tabla limpiada' });
   }
-
+  validateNumberInput(event: KeyboardEvent) {
+    const charCode = event.charCode;
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+    }
+  }
   verFormulario(codigo: number) {
     this.visible = true;
+    this.form.reset();
+    this.file = null;
+    this.fileUpload.clear();
     this.codigoContratacion = codigo;
   }
 
@@ -109,9 +128,9 @@ export class ListarConvocatoriasComponent {
         } else {
           this.visible = false;
           this.progress = true;
-          let uniqueFileName = `${new Date().getTime()}_${this.file.name}`;
+          let uniqueFileName = `${new Date().getTime()}_${this.file!.name}`;
           let formData = new FormData();
-          formData.append('file', this.file, uniqueFileName);
+          formData.append('file', this.file!, uniqueFileName);
           this.convocadoService.addConvocadoDocument(formData).subscribe((response: any) => {
             this.form.value.urlPDF = response['url'];
             this.form.value.codigoContratacion = this.codigoContratacion;
